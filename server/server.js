@@ -17,6 +17,9 @@ app.use("/api/auth", authRoutes);
 const faqRoutes = require('./routes/faqRoutes');
 app.use('/api/faqs', faqRoutes);
 
+const announcementRoutes = require('./routes/announcementRoutes');
+app.use('/api/announcements', announcementRoutes);
+
 app.get("/", (req, res) => {
   res.send("Campus Connect server is running");
 });
