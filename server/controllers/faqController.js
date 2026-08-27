@@ -37,4 +37,49 @@ const getFAQs = async (req, res) => {
   }
 };
 
-module.exports = { createFAQ, getFAQs };
+// Update an FAQ (admin only)
+const updateFAQ = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, category, description } = req.body;
+
+    const faq = await FAQ.findById(id);
+    if (!faq) {
+      return res.status(404).json({ message: 'FAQ not found' });
+    }
+
+    if (title) faq.title = title;
+    if (category) faq.category = category;
+    if (description) faq.description = description;
+
+    await faq.save();
+
+    res.status(200).json({ message: 'FAQ updated successfully', faq });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while updating FAQ' });
+  }
+};
+
+// Delete an FAQ (admin only)
+const deleteFAQ = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const faq = await FAQ.findById(id);
+    if (!faq) {
+      return res.status(404).json({ message: 'FAQ not found' });
+    }
+
+    await faq.deleteOne();
+
+    res.status(200).json({ message: 'FAQ deleted successfully' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while deleting FAQ' });
+  }
+};
+
+module.exports = { createFAQ, getFAQs, updateFAQ, deleteFAQ };
