@@ -16,6 +16,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 const faqRoutes = require('./routes/faqRoutes');
 app.use('/api/faqs', faqRoutes);
+const postRoutes = require('./routes/postRoutes');
+app.use('/api/posts', postRoutes);
 
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
