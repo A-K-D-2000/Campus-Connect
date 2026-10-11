@@ -14,10 +14,15 @@ mongoose
 const authRoutes = require("./routes/authRoutes");
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+
 const faqRoutes = require('./routes/faqRoutes');
 app.use('/api/faqs', faqRoutes);
+
 const postRoutes = require('./routes/postRoutes');
 app.use('/api/posts', postRoutes);
+
+const commentRoutes = require('./routes/commentRoutes');
+app.use('/api/comments', commentRoutes);
 
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
