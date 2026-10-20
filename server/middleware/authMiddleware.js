@@ -24,5 +24,11 @@ const adminOnly = (req, res, next) => {
     res.status(403).json({ message: 'Access denied: admins only' });
   }
 };
-
-module.exports = { protect, adminOnly };
+const staffOnly = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'authority')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access denied: authorities and admins only' });
+  }
+};
+module.exports = { protect, adminOnly, staffOnly  };
