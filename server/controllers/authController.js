@@ -140,6 +140,7 @@ const login = async (req, res) => {
   }
 };
 // Save or change the backup email (logged-in users)
+// Start adding a backup email: send a verification link to it (logged-in users)
 const setBackupEmail = async (req, res) => {
   try {
     const { backupEmail } = req.body;
@@ -160,12 +161,64 @@ const setBackupEmail = async (req, res) => {
       return res.status(400).json({ message: 'That email is already in use' });
     }
 
-    await User.findByIdAndUpdate(req.user.userId, { backupEmail: value });
-    res.status(200).json({ message: 'Backup email saved' });
+    // Held as "pending" until the user clicks the link sent to that address
+    await User.findByIdAndUpdate(req.user.userId, { pendingBackupEmail: value });
+
+    const token = jwt.sign(
+      { userId: req.user.userId, backupEmail: value },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    const verifyLink = `http://localhost:5000/api/auth/verify-backup/${token}`;
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: value,
+      subject: 'Verify your Campus Connect backup email',
+      html: `<p>Click the link below to confirm this address as your backup email:</p>
+             <a href="${verifyLink}">${verifyLink}</a>`,
+    });
+
+    res.status(200).json({ message: 'Verification link sent. Check that inbox to confirm your backup email.' });
 
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error while saving backup email' });
+  }
+};
+
+// Confirm the backup email from the emailed link (public)
+const verifyBackupEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({
+      _id: decoded.userId,
+      pendingBackupEmail: decoded.backupEmail,
+    });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification link' });
+    }
+
+    // Make sure nobody else claimed this address while it was pending
+    const taken = await User.findOne({
+      $or: [{ email: decoded.backupEmail }, { backupEmail: decoded.backupEmail }],
+      _id: { $ne: user._id },
+    });
+    if (taken) {
+      return res.status(400).json({ message: 'That email is already in use' });
+    }
+
+    user.backupEmail = user.pendingBackupEmail;
+    user.pendingBackupEmail = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Backup email verified successfully.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: 'Invalid or expired verification link' });
   }
 };
 
@@ -239,4 +292,4 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: 'Server error while resetting password' });
   }
 };
-module.exports = { signup, verifyEmail, login, setBackupEmail, forgotPassword, resetPassword };
+module.exports = { signup, verifyEmail, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword };

@@ -5,6 +5,7 @@ const {
   verifyEmail,
   login,
   setBackupEmail,
+  verifyBackupEmail,
   forgotPassword,
   resetPassword,
 } = require("../controllers/authController");
@@ -14,6 +15,7 @@ router.post("/signup", signup);
 router.get("/verify/:token", verifyEmail);
 router.post("/login", login);
 router.put("/backup-email", protect, setBackupEmail);
+router.get("/verify-backup/:token", verifyBackupEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 
