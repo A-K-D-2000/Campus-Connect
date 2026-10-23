@@ -24,6 +24,9 @@ app.use('/api/posts', postRoutes);
 const commentRoutes = require('./routes/commentRoutes');
 app.use('/api/comments', commentRoutes);
 
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
 
