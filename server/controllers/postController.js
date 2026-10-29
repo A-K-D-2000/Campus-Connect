@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const Notification = require("../models/Notification");
@@ -43,6 +44,27 @@ const getPosts = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error while fetching posts" });
+  }
+};
+
+// Get one post by id (public)
+const getPostById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const post = await Post.findById(id).populate('createdBy', 'username');
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.status(200).json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while fetching post' });
   }
 };
 
@@ -109,4 +131,4 @@ const deletePost = async (req, res) => {
   }
 };
 
-module.exports = { createPost, getPosts, toggleUpvote, deletePost };
+module.exports = { createPost, getPosts, getPostById, toggleUpvote, deletePost };
