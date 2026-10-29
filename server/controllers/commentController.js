@@ -2,6 +2,7 @@ const Comment = require("../models/Comment");
 const Post = require("../models/Post");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const { sendToUser } = require('../socket');
 
 const MAX_REPLIES = 200;
 // Decide who to notify about a new comment/reply, and save the notifications
@@ -28,8 +29,17 @@ const notifyForComment = async ({ comment, post, parent, senderId }) => {
     comment: comment._id,
   }));
 
-  if (docs.length > 0) {
-    await Notification.insertMany(docs);
+    if (docs.length > 0) {
+    const created = await Notification.insertMany(docs);
+
+    // Fill in the sender's username and the post title, same as the REST list shows
+    const populated = await Notification.populate(created, [
+      { path: 'sender', select: 'username' },
+      { path: 'post', select: 'title' },
+    ]);
+
+    // Push each one to its recipient if they're online
+    populated.forEach((n) => sendToUser(n.recipient.toString(), 'notification', n));
   }
 };
 

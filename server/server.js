@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const http = require("http");
+const { initSocket } = require("./socket");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +36,9 @@ app.get("/", (req, res) => {
   res.send("Campus Connect server is running");
 });
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
