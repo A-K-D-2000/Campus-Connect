@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { sendToUser } = require('../socket');
+const { containsProfanity } = require('../utils/profanity');
 
 const MAX_REPLIES = 200;
 // Decide who to notify about a new comment/reply, and save the notifications
@@ -53,6 +54,9 @@ const createComment = async (req, res) => {
       return res
         .status(400)
         .json({ message: "postId and content are required" });
+    }
+        if (containsProfanity(content)) {
+      return res.status(400).json({ message: 'Your comment contains inappropriate language. Please edit it and try again.' });
     }
 
     const post = await Post.findById(postId);

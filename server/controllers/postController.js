@@ -1,6 +1,7 @@
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const Notification = require("../models/Notification");
+const { containsProfanity } = require('../utils/profanity');
 
 // Create a post (any logged-in user)
 const createPost = async (req, res) => {
@@ -11,6 +12,9 @@ const createPost = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Title, content, and flair are required" });
+    }
+        if (containsProfanity(title, content)) {
+      return res.status(400).json({ message: 'Your post contains inappropriate language. Please edit it and try again.' });
     }
 
     const post = new Post({
