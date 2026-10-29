@@ -13,7 +13,11 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="brand">Campus Connect</Link>
+      <div className="nav-left">
+        <Link to="/" className="brand">Campus Connect</Link>
+        <Link to="/faqs" className="nav-link">FAQs</Link>
+        <Link to="/announcements" className="nav-link">Announcements</Link>
+      </div>
 
       <div className="nav-right">
         {user ? (
