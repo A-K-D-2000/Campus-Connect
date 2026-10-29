@@ -1,4 +1,6 @@
-const Post = require('../models/Post');
+const Post = require("../models/Post");
+const Comment = require("../models/Comment");
+const Notification = require("../models/Notification");
 
 // Create a post (any logged-in user)
 const createPost = async (req, res) => {
@@ -6,7 +8,9 @@ const createPost = async (req, res) => {
     const { title, content, flair } = req.body;
 
     if (!title || !content || !flair) {
-      return res.status(400).json({ message: 'Title, content, and flair are required' });
+      return res
+        .status(400)
+        .json({ message: "Title, content, and flair are required" });
     }
 
     const post = new Post({
@@ -18,22 +22,23 @@ const createPost = async (req, res) => {
 
     await post.save();
 
-    res.status(201).json({ message: 'Post created successfully', post });
-
+    res.status(201).json({ message: "Post created successfully", post });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error while creating post' });
+    res.status(500).json({ message: "Server error while creating post" });
   }
 };
 
 // Get all posts (public)
 const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find().populate('createdBy', 'username').sort({ createdAt: -1 });
+    const posts = await Post.find()
+      .populate("createdBy", "username")
+      .sort({ createdAt: -1 });
     res.status(200).json(posts);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error while fetching posts' });
+    res.status(500).json({ message: "Server error while fetching posts" });
   }
 };
 
@@ -45,7 +50,7 @@ const toggleUpvote = async (req, res) => {
 
     const post = await Post.findById(id);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
 
     const alreadyUpvoted = post.upvotes.includes(userId);
@@ -59,13 +64,12 @@ const toggleUpvote = async (req, res) => {
     await post.save();
 
     res.status(200).json({
-      message: alreadyUpvoted ? 'Upvote removed' : 'Post upvoted',
+      message: alreadyUpvoted ? "Upvote removed" : "Post upvoted",
       upvoteCount: post.upvotes.length,
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error while updating upvote' });
+    res.status(500).json({ message: "Server error while updating upvote" });
   }
 };
 
@@ -76,23 +80,28 @@ const deletePost = async (req, res) => {
 
     const post = await Post.findById(id);
     if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
+      return res.status(404).json({ message: "Post not found" });
     }
 
     const isOwner = post.createdBy.toString() === req.user.userId;
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === "admin";
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: 'Not authorized to delete this post' });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this post" });
     }
+
+    // Remove everything that belongs to this post
+    await Comment.deleteMany({ post: post._id });
+    await Notification.deleteMany({ post: post._id });
 
     await post.deleteOne();
 
-    res.status(200).json({ message: 'Post deleted successfully' });
-
+    res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error while deleting post' });
+    res.status(500).json({ message: "Server error while deleting post" });
   }
 };
 
