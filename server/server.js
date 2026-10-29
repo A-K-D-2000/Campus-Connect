@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const http = require("http");
 const { initSocket } = require("./socket");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 const authRoutes = require("./routes/authRoutes");
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 
