@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Avatar from './Avatar';
+import NotificationBell from './NotificationBell';
 
 function Navbar() {
   const { user, logout } = useAuth();
@@ -23,6 +24,7 @@ function Navbar() {
       <div className="nav-right">
         {user ? (
           <>
+            <NotificationBell />
             <Avatar name={user.username} />
             <span className="nav-username">{user.username}</span>
             <button className="btn btn-outline" onClick={handleLogout}>Logout</button>
