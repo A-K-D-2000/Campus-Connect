@@ -7,6 +7,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import FAQs from "./pages/FAQs";
 import Announcements from "./pages/Announcements";
+import Discussion from "./pages/Discussion";
+import PostPage from "./pages/PostPage";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/announcements" element={<Announcements />} />
+          <Route path="/discussion" element={<Discussion />} />
+          <Route path="/discussion/:id" element={<PostPage />} />
         </Routes>
       </main>
     </>

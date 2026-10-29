@@ -17,6 +17,7 @@ function Navbar() {
         <Link to="/" className="brand">Campus Connect</Link>
         <Link to="/faqs" className="nav-link">FAQs</Link>
         <Link to="/announcements" className="nav-link">Announcements</Link>
+        <Link to="/discussion" className="nav-link">Discussion</Link>
       </div>
 
       <div className="nav-right">
