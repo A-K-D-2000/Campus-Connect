@@ -50,6 +50,12 @@ const updateFAQ = async (req, res) => {
       return res.status(404).json({ message: "FAQ not found" });
     }
 
+        const isOwner = faq.createdBy.toString() === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'You can only manage FAQs you created' });
+    }
+
     if (title) faq.title = title;
     if (description) faq.description = description;
 
@@ -70,6 +76,12 @@ const deleteFAQ = async (req, res) => {
     const faq = await FAQ.findById(id);
     if (!faq) {
       return res.status(404).json({ message: "FAQ not found" });
+    }
+
+        const isOwner = faq.createdBy.toString() === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'You can only manage FAQs you created' });
     }
 
     await faq.deleteOne();

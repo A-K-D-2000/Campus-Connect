@@ -48,6 +48,12 @@ const updateAnnouncement = async (req, res) => {
       return res.status(404).json({ message: 'Announcement not found' });
     }
 
+        const isOwner = announcement.createdBy.toString() === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'You can only manage announcements you created' });
+    }
+
     if (title) announcement.title = title;
     if (content) announcement.content = content;
     if (category) announcement.category = category;
@@ -70,6 +76,13 @@ const deleteAnnouncement = async (req, res) => {
     const announcement = await Announcement.findById(id);
     if (!announcement) {
       return res.status(404).json({ message: 'Announcement not found' });
+    }
+
+
+        const isOwner = announcement.createdBy.toString() === req.user.userId;
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'You can only manage announcements you created' });
     }
 
     await announcement.deleteOne();
