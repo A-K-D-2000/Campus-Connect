@@ -9,6 +9,7 @@ const {
   verifyBackupEmail,
   forgotPassword,
   resetPassword,
+  deleteAccount,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -20,5 +21,7 @@ router.put("/backup-email", protect, setBackupEmail);
 router.get("/verify-backup/:token", verifyBackupEmail);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
+router.delete('/account', protect, deleteAccount);
 
 module.exports = router;

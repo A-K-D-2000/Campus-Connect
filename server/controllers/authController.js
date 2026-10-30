@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const { Filter } = require('bad-words');
+const DeletedEmail = require('../models/DeletedEmail');
+const Notification = require('../models/Notification');
 
 const filter = new Filter();
 
@@ -28,7 +30,7 @@ const signup = async (req, res) => {
     if (!password || password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
     }
-    
+
     // 2. Check username for profanity
     if (filter.isProfane(username)) {
       return res.status(400).json({ message: 'Username contains inappropriate language' });
@@ -335,4 +337,47 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, verifyEmail, resendVerification, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword };
+// Delete my own account (logged-in users)
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required to delete your account' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(403).json({ message: 'Admin accounts cannot be deleted here' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect password' });
+    }
+
+    // Start the 24-hour cooldown on this college email
+    await DeletedEmail.findOneAndUpdate(
+      { email: user.email },
+      { email: user.email, deletedAt: new Date() },
+      { upsert: true }
+    );
+
+    // Notifications addressed to this user are personal, so they go with the account
+    await Notification.deleteMany({ recipient: user._id });
+
+    // Posts and comments stay; they will show as "Deleted user"
+    await user.deleteOne();
+
+    res.status(200).json({ message: 'Your account has been deleted.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while deleting account' });
+  }
+};
+
+module.exports = { signup, verifyEmail, resendVerification, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword, deleteAccount };
