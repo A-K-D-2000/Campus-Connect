@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const deletedEmailSchema = new mongoose.Schema({
   email: {
@@ -16,4 +16,4 @@ const deletedEmailSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('DeletedEmail', deletedEmailSchema);
+module.exports = mongoose.model("DeletedEmail", deletedEmailSchema);
