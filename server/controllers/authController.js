@@ -25,6 +25,10 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'Only college email addresses are allowed' });
     }
 
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+    
     // 2. Check username for profanity
     if (filter.isProfane(username)) {
       return res.status(400).json({ message: 'Username contains inappropriate language' });
@@ -93,6 +97,44 @@ const verifyEmail = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ message: 'Invalid or expired verification link' });
+  }
+};
+
+// Send a fresh verification link to an unverified account (public)
+const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const address = email.toLowerCase().trim();
+    const user = await User.findOne({ email: address });
+
+    // Only unverified accounts, and not more than once a minute
+    const recentlyUpdated = user && (Date.now() - user.updatedAt.getTime() < 60 * 1000);
+
+    if (user && !user.isVerified && !recentlyUpdated) {
+      const verificationToken = jwt.sign({ email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+      user.verificationToken = verificationToken;
+      await user.save();
+
+      const verificationLink = `http://localhost:5000/api/auth/verify/${verificationToken}`;
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Verify your Campus Connect account',
+        html: `<p>Click the link below to verify your account:</p>
+               <a href="${verificationLink}">${verificationLink}</a>`,
+      });
+    }
+
+    // Same reply in every case
+    res.status(200).json({ message: 'If an unverified account exists for that email, a new verification link has been sent.' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error while resending verification email' });
   }
 };
 
@@ -292,4 +334,5 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ message: 'Server error while resetting password' });
   }
 };
-module.exports = { signup, verifyEmail, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword };
+
+module.exports = { signup, verifyEmail, resendVerification, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword };

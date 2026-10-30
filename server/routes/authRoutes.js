@@ -4,6 +4,7 @@ const {
   signup,
   verifyEmail,
   login,
+  resendVerification,
   setBackupEmail,
   verifyBackupEmail,
   forgotPassword,
@@ -13,6 +14,7 @@ const { protect } = require("../middleware/authMiddleware");
 
 router.post("/signup", signup);
 router.get("/verify/:token", verifyEmail);
+router.post('/resend-verification', resendVerification);
 router.post("/login", login);
 router.put("/backup-email", protect, setBackupEmail);
 router.get("/verify-backup/:token", verifyBackupEmail);
