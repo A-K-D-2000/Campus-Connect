@@ -1,4 +1,5 @@
 const FAQ = require("../models/FAQ");
+const { uploadFiles } = require('../utils/uploadToCloudinary');
 
 // Create a new FAQ (admin only)
 const createFAQ = async (req, res) => {
@@ -11,9 +12,12 @@ const createFAQ = async (req, res) => {
         .json({ message: "Title and description are required" });
     }
 
+    const attachments = await uploadFiles(req.files, 'campus-connect/faqs');
+
     const faq = new FAQ({
       title,
       description,
+      attachments,
       createdBy: req.user.userId,
     });
 

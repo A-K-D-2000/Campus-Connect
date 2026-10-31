@@ -1,4 +1,5 @@
 const Announcement = require('../models/Announcement');
+const { uploadFiles } = require('../utils/uploadToCloudinary');
 
 // Create an announcement (admin only)
 const createAnnouncement = async (req, res) => {
@@ -9,10 +10,13 @@ const createAnnouncement = async (req, res) => {
       return res.status(400).json({ message: 'Title, content, and category are required' });
     }
 
+    const attachments = await uploadFiles(req.files, 'campus-connect/announcements');
+
     const announcement = new Announcement({
       title,
       content,
       category,
+      attachments,
       createdBy: req.user.userId,
     });
 

@@ -12,6 +12,9 @@ const faqSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    attachments: [{
+      type: String,
+    }],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

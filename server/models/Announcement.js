@@ -15,6 +15,9 @@ const announcementSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  attachments: [{
+    type: String,
+  }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

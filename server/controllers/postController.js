@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const Notification = require("../models/Notification");
 const { containsProfanity } = require('../utils/profanity');
+const { uploadFiles } = require('../utils/uploadToCloudinary');
 
 // Create a post (any logged-in user)
 const createPost = async (req, res) => {
@@ -17,11 +18,13 @@ const createPost = async (req, res) => {
         if (containsProfanity(title, content)) {
       return res.status(400).json({ message: 'Your post contains inappropriate language. Please edit it and try again.' });
     }
-
+    // Files are uploaded only after every check has passed
+    const attachments = await uploadFiles(req.files, 'campus-connect/posts');
     const post = new Post({
       title,
       content,
       flair,
+      attachments,
       createdBy: req.user.userId,
     });
 
