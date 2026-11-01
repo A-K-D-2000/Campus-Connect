@@ -51,6 +51,7 @@ Roles: Student, Authority, Admin. "Staff" = Authority or Admin.
 | PUT | /api/comments/:id/upvote | Logged-in | Toggle upvote |
 | DELETE | /api/comments/:id | Owner or Admin | Delete (a top-level comment also deletes its replies) |
 | POST /api/auth/resend-verification | Public | Send a new verification link. Body: email
+GET /api/activity?type=posts|comments&page=1&limit=10 | Logged-in | Your own posts or comments, newest first
 
 ## Rules enforced in the controller
 
