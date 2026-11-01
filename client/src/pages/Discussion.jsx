@@ -21,10 +21,16 @@ function Discussion() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState('');
 
-  const loadPosts = async () => {
+const loadPosts = async () => {
     try {
-      const res = await api.get('/api/posts');
+      const params = {};
+      if (query.trim()) params.q = query.trim();
+      if (sort) params.sort = sort;
+
+      const res = await api.get('/api/posts', { params });
       setPosts(res.data);
       setError('');
     } catch {
@@ -34,9 +40,11 @@ function Discussion() {
     }
   };
 
+  // Wait 300 ms after the last keystroke before searching
   useEffect(() => {
-    loadPosts();
-  }, []);
+    const timer = setTimeout(loadPosts, 300);
+    return () => clearTimeout(timer);
+  }, [query, sort]);
 
   const handleNewPost = () => {
     if (!user) {
@@ -101,6 +109,14 @@ function Discussion() {
       </div>
       <p className="muted">Academic doubts, placement experiences and general questions.</p>
 
+      <input
+        className="search-input"
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search posts, for example: placement interview"
+      />
+
       {needLogin && <LoginNotice />}
 
       {showForm && (
@@ -138,11 +154,20 @@ function Discussion() {
             <option key={f} value={f}>{f}</option>
           ))}
         </select>
+        <label htmlFor="sort-select">Sort:</label>
+        <select id="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="">{query.trim() ? 'Best match' : 'Newest'}</option>
+          {query.trim() && <option value="new">Newest</option>}
+          <option value="top">Most upvoted</option>
+          <option value="old">Oldest</option>
+        </select>
       </div>
 
       {error && <p className="msg msg-error">{error}</p>}
       {loading && <p className="muted">Loading...</p>}
-      {!loading && !error && shown.length === 0 && <p className="muted">No posts yet.</p>}
+      {!loading && !error && shown.length === 0 && (
+        <p className="muted">{query.trim() ? 'No posts match your search.' : 'No posts yet.'}</p>
+      )}
 
       {shown.map((post) => (
         <article className="item" key={post._id}>
