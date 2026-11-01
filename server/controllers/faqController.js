@@ -30,16 +30,66 @@ const createFAQ = async (req, res) => {
   }
 };
 
-// Get all FAQs (public)
+// Escape special characters so a search term is treated as plain text
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Get all FAQs, or search them with ?q= (public)
 const getFAQs = async (req, res) => {
   try {
-    const faqs = await FAQ.find()
-      .populate("createdBy", "username")
-      .sort({ createdAt: -1 });
-    res.status(200).json(faqs);
+    const q = String(req.query.q || '').trim().slice(0, 100);
+
+    // No search term: return everything, newest first
+    if (!q) {
+      const faqs = await FAQ.find().populate('createdBy', 'username').sort({ createdAt: -1 });
+      return res.status(200).json(faqs);
+    }
+
+    let results;
+    try {
+      results = await FAQ.aggregate([
+        {
+          $search: {
+            index: 'faq_search',
+            compound: {
+              should: [
+                {
+                  text: {
+                    query: q,
+                    path: 'title',
+                    fuzzy: { maxEdits: 1, prefixLength: 2 },
+                    score: { boost: { value: 3 } },
+                  },
+                },
+                {
+                  text: {
+                    query: q,
+                    path: 'description',
+                    fuzzy: { maxEdits: 1, prefixLength: 2 },
+                  },
+                },
+              ],
+              minimumShouldMatch: 1,
+            },
+          },
+        },
+        { $limit: 20 },
+        { $addFields: { score: { $meta: 'searchScore' } } },
+      ]);
+    } catch (searchErr) {
+      // If Atlas Search itself fails, fall back to a simple match so the page still works
+      console.warn('Atlas Search failed, using fallback:', searchErr.message);
+      const rx = new RegExp(escapeRegex(q), 'i');
+      results = await FAQ.find({ $or: [{ title: rx }, { description: rx }] })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean();
+    }
+
+    const populated = await FAQ.populate(results, { path: 'createdBy', select: 'username' });
+    res.status(200).json(populated);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error while fetching FAQs" });
+    res.status(500).json({ message: 'Server error while fetching FAQs' });
   }
 };
 
