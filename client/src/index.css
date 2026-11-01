@@ -256,3 +256,8 @@ select {
 .bell-dismiss:hover { color: #c62828; }
 .bell-empty { padding: 14px; margin: 0; }
 .bell-more { display: block; margin: 10px auto; }
+.search-input {
+  width: 100%; margin: 12px 0 8px; padding: 10px 14px; font-size: 1rem;
+  border: 1px solid #cfd3de; border-radius: 999px; background: #fff;
+}
+.search-input:focus { outline: 2px solid #c5caf8; border-color: #4a56e2; }

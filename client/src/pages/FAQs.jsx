@@ -17,6 +17,7 @@ function FAQs() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [query, setQuery] = useState('');
 
   const isStaff = user && (user.role === "admin" || user.role === "authority");
   // Admin can manage everything; Authority only their own items
@@ -25,7 +26,9 @@ function FAQs() {
 
   const loadFaqs = async () => {
     try {
-      const res = await api.get("/api/faqs");
+      const res = await api.get('/api/faqs', {
+      params: query.trim() ? { q: query.trim() } : {},
+      });
       setFaqs(res.data);
       setError("");
     } catch {
@@ -35,9 +38,11 @@ function FAQs() {
     }
   };
 
+  // Wait 300 ms after the last keystroke before searching
   useEffect(() => {
-    loadFaqs();
-  }, []);
+    const timer = setTimeout(loadFaqs, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -112,6 +117,14 @@ function FAQs() {
         processes.
       </p>
 
+      <input
+        className="search-input"
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search FAQs, for example: bus fee refund"
+      />
+
       {showForm && (
         <div className="panel">
           <h3>{editingId ? "Edit FAQ" : "New FAQ"}</h3>
@@ -162,7 +175,7 @@ function FAQs() {
       {error && <p className="msg msg-error">{error}</p>}
       {loading && <p className="muted">Loading...</p>}
       {!loading && !error && faqs.length === 0 && (
-        <p className="muted">No FAQs yet.</p>
+        <p className="muted">{query.trim() ? 'No FAQs match your search.' : 'No FAQs yet.'}</p>
       )}
 
       {faqs.map((faq) => (
