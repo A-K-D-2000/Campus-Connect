@@ -25,6 +25,7 @@ function Navbar() {
         {user ? (
           <>
             <NotificationBell />
+            <Link to="/my-activity" className="nav-link">My Activity</Link>
             <Avatar name={user.username} />
             <span className="nav-username">{user.username}</span>
             <button className="btn btn-outline" onClick={handleLogout}>Logout</button>

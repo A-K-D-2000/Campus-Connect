@@ -9,6 +9,7 @@ import FAQs from "./pages/FAQs";
 import Announcements from "./pages/Announcements";
 import Discussion from "./pages/Discussion";
 import PostPage from "./pages/PostPage";
+import MyActivity from './pages/MyActivity';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/discussion" element={<Discussion />} />
           <Route path="/discussion/:id" element={<PostPage />} />
+          <Route path="/my-activity" element={<MyActivity />} />
         </Routes>
       </main>
     </>

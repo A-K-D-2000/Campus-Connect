@@ -261,3 +261,11 @@ select {
   border: 1px solid #cfd3de; border-radius: 999px; background: #fff;
 }
 .search-input:focus { outline: 2px solid #c5caf8; border-color: #4a56e2; }
+.tabs { display: flex; gap: 8px; margin: 16px 0; }
+.tab {
+  padding: 8px 18px; border: 1px solid #cfd3de; border-radius: 999px;
+  background: #fff; color: #4b5160; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.tab:hover { background: #f0f1fd; }
+.tab-active { background: #4a56e2; border-color: #4a56e2; color: #fff; }
+.tab-active:hover { background: #3b46c4; }
