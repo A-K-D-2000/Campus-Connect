@@ -37,16 +37,85 @@ const createPost = async (req, res) => {
   }
 };
 
-// Get all posts (public)
+// Escape special characters so a search term is treated as plain text
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const SORTS = {
+  new: { createdAt: -1 },
+  old: { createdAt: 1 },
+  top: { upvoteCount: -1, createdAt: -1 },
+};
+
+// Get posts: all of them, or search with ?q=, ordered with ?sort= (public)
 const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find()
-      .populate("createdBy", "username")
-      .sort({ createdAt: -1 });
-    res.status(200).json(posts);
+    const q = String(req.query.q || '').trim().slice(0, 100);
+    const requested = req.query.sort;
+    const sortKey = ['new', 'old', 'top', 'relevance'].includes(requested)
+      ? requested
+      : q ? 'relevance' : 'new';
+
+    // upvoteCount lets us sort by upvotes
+    const addCount = { $addFields: { upvoteCount: { $size: { $ifNull: ['$upvotes', []] } } } };
+
+    let results;
+
+    if (!q) {
+      // 'relevance' makes no sense without a search term, so it falls back to newest
+      results = await Post.aggregate([addCount, { $sort: SORTS[sortKey] || SORTS.new }]);
+    } else {
+      try {
+        const pipeline = [
+          {
+            $search: {
+              index: 'post_search',
+              compound: {
+                should: [
+                  {
+                    text: {
+                      query: q,
+                      path: 'title',
+                      fuzzy: { maxEdits: 1, prefixLength: 2 },
+                      score: { boost: { value: 3 } },
+                    },
+                  },
+                  {
+                    text: {
+                      query: q,
+                      path: 'content',
+                      fuzzy: { maxEdits: 1, prefixLength: 2 },
+                    },
+                  },
+                ],
+                minimumShouldMatch: 1,
+              },
+            },
+          },
+          { $limit: 50 },
+          { $addFields: { score: { $meta: 'searchScore' } } },
+          addCount,
+        ];
+        // Atlas already returns best match first, so only re-sort for the other orders
+        if (sortKey !== 'relevance') pipeline.push({ $sort: SORTS[sortKey] });
+        results = await Post.aggregate(pipeline);
+      } catch (searchErr) {
+        // If Atlas Search fails, fall back to a simple match so the page still works
+        console.warn('Atlas Search failed, using fallback:', searchErr.message);
+        const rx = new RegExp(escapeRegex(q), 'i');
+        results = await Post.aggregate([
+          { $match: { $or: [{ title: rx }, { content: rx }] } },
+          addCount,
+          { $sort: SORTS[sortKey] || SORTS.new },
+          { $limit: 50 },
+        ]);
+      }
+    }
+
+    const populated = await Post.populate(results, { path: 'createdBy', select: 'username' });
+    res.status(200).json(populated);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error while fetching posts" });
+    res.status(500).json({ message: 'Server error while fetching posts' });
   }
 };
 
