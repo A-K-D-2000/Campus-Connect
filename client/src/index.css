@@ -269,3 +269,26 @@ select {
 .tab:hover { background: #f0f1fd; }
 .tab-active { background: #4a56e2; border-color: #4a56e2; color: #fff; }
 .tab-active:hover { background: #3b46c4; }
+.file-picker { margin: 6px 0; }
+.file-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.file-chip {
+  display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 4px;
+  background: #f5f6fa; border: 1px solid #e3e5ec; border-radius: 8px; max-width: 100%;
+}
+.file-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; }
+.file-icon { width: 36px; text-align: center; font-size: 1.3rem; }
+.file-name { font-size: 0.85rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-remove { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: #9097a6; padding: 0 6px; }
+.file-remove:hover { color: #c62828; }
+
+.attachments { margin: 10px 0; }
+.attach-images { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.attach-images img {
+  width: 140px; height: 110px; object-fit: cover; border-radius: 8px;
+  border: 1px solid #e3e5ec; display: block;
+}
+.attach-images img:hover { opacity: 0.9; }
+.attach-pdf {
+  display: inline-block; margin: 0 10px 6px 0; padding: 6px 12px;
+  border: 1px solid #cfd3de; border-radius: 8px; background: #fff; font-size: 0.9rem;
+}

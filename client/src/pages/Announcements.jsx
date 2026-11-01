@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import api from "../api";
 import { useAuth } from "../context/AuthContext";
 import FormattedText from "../components/FormattedText";
+import FilePicker from '../components/FilePicker';
+import AttachmentList from '../components/AttachmentList';
+
 
 const CATEGORIES = ["Academic", "Admin", "Events", "General"];
 const OTHER = "__other__";
@@ -25,6 +28,7 @@ function Announcements() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [files, setFiles] = useState([]);
 
   const isStaff = user && (user.role === "admin" || user.role === "authority");
   const canManage = (item) =>
@@ -51,6 +55,7 @@ function Announcements() {
     setForm(emptyForm);
     setFormError("");
     setShowForm(true);
+    setFiles([]);
   };
 
   const openEdit = (item) => {
@@ -63,6 +68,7 @@ function Announcements() {
       customCategory: known ? "" : item.category,
     });
     setFormError("");
+    setFiles([]);
     setShowForm(true);
   };
 
@@ -71,6 +77,7 @@ function Announcements() {
     setEditingId(null);
     setForm(emptyForm);
     setFormError("");
+    setFiles([]);
   };
 
   const handleChange = (e) => {
@@ -90,11 +97,19 @@ function Announcements() {
 
     setSaving(true);
     try {
-      const body = { title: form.title, content: form.content, category };
       if (editingId) {
-        await api.put(`/api/announcements/${editingId}`, body);
+        await api.put(`/api/announcements/${editingId}`, {
+          title: form.title,
+          content: form.content,
+          category,
+        });
       } else {
-        await api.post("/api/announcements", body);
+        const body = new FormData();
+        body.append('title', form.title);
+        body.append('content', form.content);
+        body.append('category', category);
+        files.forEach((f) => body.append('files', f));
+        await api.post('/api/announcements', body);
       }
       closeForm();
       await loadItems();
@@ -186,11 +201,20 @@ function Announcements() {
               Tip: put deadlines between **double asterisks** to make them bold.
             </p>
 
+            {editingId ? (
+              <p className="muted">Attachments can only be added when an FAQ is first published.</p>
+            ) : (
+              <>
+                <label>Attachments (optional)</label>
+                <FilePicker allowPdf files={files} onChange={setFiles} />
+              </>
+            )}
+
             {formError && <p className="msg msg-error">{formError}</p>}
 
             <div className="row">
               <button className="btn" disabled={saving}>
-                {saving ? "Saving..." : editingId ? "Save changes" : "Publish"}
+                {saving ? (files.length ? 'Uploading...' : 'Saving...') : editingId ? 'Save changes' : 'Publish'}
               </button>
               <button
                 type="button"
@@ -232,6 +256,7 @@ function Announcements() {
           <span className="badge">{item.category}</span>
           <h3>{item.title}</h3>
           <FormattedText text={item.content} />
+          <AttachmentList urls={item.attachments} />
           <p className="item-meta">
             Posted {new Date(item.createdAt).toLocaleDateString()}
             {item.createdBy?.username && ` · by ${item.createdBy.username}`}

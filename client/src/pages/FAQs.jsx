@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../api";
 import { useAuth } from "../context/AuthContext";
 import FormattedText from "../components/FormattedText";
+import FilePicker from '../components/FilePicker';
+import AttachmentList from '../components/AttachmentList';
 
 const emptyForm = { title: "", description: "" };
 
@@ -18,6 +20,7 @@ function FAQs() {
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [query, setQuery] = useState('');
+  const [files, setFiles] = useState([]);
 
   const isStaff = user && (user.role === "admin" || user.role === "authority");
   // Admin can manage everything; Authority only their own items
@@ -49,6 +52,7 @@ function FAQs() {
     setForm(emptyForm);
     setFormError("");
     setShowForm(true);
+    setFiles([]);
   };
 
   const openEdit = (faq) => {
@@ -56,6 +60,7 @@ function FAQs() {
     setForm({ title: faq.title, description: faq.description });
     setFormError("");
     setShowForm(true);
+    setFiles([]);
   };
 
   const closeForm = () => {
@@ -63,6 +68,7 @@ function FAQs() {
     setEditingId(null);
     setForm(emptyForm);
     setFormError("");
+    setFiles([]);
   };
 
   const handleChange = (e) => {
@@ -77,7 +83,11 @@ function FAQs() {
       if (editingId) {
         await api.put(`/api/faqs/${editingId}`, form);
       } else {
-        await api.post("/api/faqs", form);
+        const body = new FormData();
+        body.append('title', form.title);
+        body.append('description', form.description);
+        files.forEach((f) => body.append('files', f));
+        await api.post('/api/faqs', body);
       }
       closeForm();
       await loadFaqs();
@@ -150,15 +160,20 @@ function FAQs() {
               Tip: put text between **double asterisks** to make it bold.
             </p>
 
+            {editingId ? (
+              <p className="muted">Attachments can only be added when an FAQ is first published.</p>
+            ) : (
+              <>
+                <label>Attachments (optional)</label>
+                <FilePicker allowPdf files={files} onChange={setFiles} />
+              </>
+            )}
+
             {formError && <p className="msg msg-error">{formError}</p>}
 
             <div className="row">
               <button className="btn" disabled={saving}>
-                {saving
-                  ? "Saving..."
-                  : editingId
-                    ? "Save changes"
-                    : "Publish FAQ"}
+                {saving ? (files.length ? 'Uploading...' : 'Saving...') : editingId ? 'Save changes' : 'Publish FAQ'}
               </button>
               <button
                 type="button"
@@ -182,6 +197,7 @@ function FAQs() {
         <article className="item" key={faq._id}>
           <h3>{faq.title}</h3>
           <FormattedText text={faq.description} />
+          <AttachmentList urls={faq.attachments} />
           <p className="item-meta">
             Last updated {new Date(faq.updatedAt).toLocaleDateString()}
             {faq.createdBy?.username && ` · by ${faq.createdBy.username}`}

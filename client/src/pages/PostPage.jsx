@@ -8,6 +8,7 @@ import UpvoteButton from '../components/UpvoteButton';
 import LoginNotice from '../components/LoginNotice';
 import CommentSection from '../components/CommentSection';
 import { toggleId, formatDate } from '../utils';
+import AttachmentList from '../components/AttachmentList';
 
 function PostPage() {
   const { id } = useParams();
@@ -89,6 +90,7 @@ function PostPage() {
           <span className="muted">{formatDate(post.createdAt)}</span>
         </div>
 
+        <AttachmentList urls={post.attachments} />
         <FormattedText text={post.content} />
 
         <div className="row post-actions">
