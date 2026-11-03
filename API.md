@@ -19,7 +19,8 @@ Roles: Student, Authority, Admin. "Staff" = Authority or Admin. The server reads
 | POST   | /api/auth/forgot-password       | Public                | Email a reset link (1 hour). Body: `email` (college email or verified backup email). Same reply in every case                |
 | POST   | /api/auth/reset-password/:token | Public                | Set a new password. Body: `password` (min 6). Link works once                                                                |
 | DELETE | /api/auth/account               | Logged-in (not Admin) | Delete own account. Body: `password`. Posts and comments stay as "Deleted user". Same email can't sign up again for 24 hours |
-
+| GET | /api/auth/me | Logged-in | Own profile: email, username, role, backup email status |
+| PUT | /api/auth/password | Logged-in | Change password. Body: `currentPassword`, `newPassword` (min 6) |
 ## FAQs
 
 | Method | URL                    | Access                                    | Purpose                                                                                           |
@@ -97,3 +98,10 @@ Files go to Cloudinary, and only the returned URLs are stored in `attachments`. 
 - Profanity is rejected on usernames, posts and comments.
 - Notifications: a comment on your post notifies you, a reply notifies the comment's author, an @tag notifies the tagged user. You never notify yourself, and one comment gives one notification per person.
 - Admin accounts can't be deleted through the API.
+
+## Admin
+
+| Method | URL | Access | Purpose |
+|---|---|---|---|
+| GET | /api/admin/users?page=1&limit=20&q=&role= | Admin | List users with optional search (username or email) and role filter |
+| PUT | /api/admin/users/:id/role | Admin | Change a user's role. Body: `role` (student / authority / admin). Can't change your own role |

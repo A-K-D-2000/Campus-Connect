@@ -34,6 +34,9 @@ app.use('/api/notifications', notificationRoutes);
 const activityRoutes = require('./routes/activityRoutes');
 app.use('/api/activity', activityRoutes);
 
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
+
 const announcementRoutes = require('./routes/announcementRoutes');
 app.use('/api/announcements', announcementRoutes);
 
