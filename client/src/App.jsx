@@ -10,6 +10,8 @@ import Announcements from "./pages/Announcements";
 import Discussion from "./pages/Discussion";
 import PostPage from "./pages/PostPage";
 import MyActivity from './pages/MyActivity';
+import Settings from './pages/Settings';
+import AdminUsers from './pages/AdminUsers';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
           <Route path="/discussion" element={<Discussion />} />
           <Route path="/discussion/:id" element={<PostPage />} />
           <Route path="/my-activity" element={<MyActivity />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
         </Routes>
       </main>
     </>
