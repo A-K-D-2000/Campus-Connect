@@ -74,7 +74,7 @@ Roles: Student, Authority, Admin. "Staff" = Authority or Admin. The server reads
 
 | Method | URL                                      | Access    | Purpose                                                                              |
 | ------ | ---------------------------------------- | --------- | ------------------------------------------------------------------------------------ |
-| GET    | /api/activity?type=posts&page=1&limit=10 | Logged-in | Own posts (`type=posts`) or own comments and replies (`type=comments`), newest first |
+| GET | /api/activity?type=posts&page=1&limit=10 | Logged-in | Own items, newest first. `type` = `posts` (default), `comments` (includes replies), `faqs` or `announcements`. The last two are only useful for Authority and Admin accounts, and return an empty list for students |
 
 ## Real-time (Socket.io)
 
