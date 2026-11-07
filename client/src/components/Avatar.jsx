@@ -1,4 +1,4 @@
-const COLORS = ['#e57373', '#f06292', '#ba68c8', '#7986cb', '#4fc3f7', '#4db6ac', '#81c784', '#ffb74d'];
+const COLORS = ['#6a795d', '#8a6f4e', '#9a5b4e', '#5b7a86', '#7b6a8f', '#4f7f6a', '#a0803f', '#6e6b4a'];
 
 function Avatar({ name = '', size = 32 }) {
   const letter = (name.charAt(0) || '?').toUpperCase();

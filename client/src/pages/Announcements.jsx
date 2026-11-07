@@ -252,7 +252,7 @@ function Announcements() {
       )}
 
       {shown.map((item) => (
-        <article className="item" key={item._id}>
+        <article className="item item-note" key={item._id}>
           <span className="badge">{item.category}</span>
           <h3>{item.title}</h3>
           <FormattedText text={item.content} />

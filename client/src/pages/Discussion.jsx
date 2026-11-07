@@ -228,7 +228,7 @@ function Discussion() {
       )}
 
       {shown.map((post) => (
-        <article className="item" key={post._id}>
+        <article className="item item-ticket" key={post._id}>
           <div className="post-card-row">
             <UpvoteButton
               count={post.upvotes.length}

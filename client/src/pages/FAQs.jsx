@@ -194,7 +194,7 @@ function FAQs() {
       )}
 
       {faqs.map((faq) => (
-        <article className="item" key={faq._id}>
+        <article className="item item-faq" key={faq._id}>
           <h3>{faq.title}</h3>
           <FormattedText text={faq.description} />
           <AttachmentList urls={faq.attachments} />
