@@ -5,17 +5,25 @@ import { useAuth } from '../context/AuthContext';
 import LoginNotice from '../components/LoginNotice';
 import Avatar from '../components/Avatar';
 import { formatDate } from '../utils';
+import { THEMES, getTheme, applyTheme } from '../theme';
 
 const errorText = (err) =>
   err.response?.data?.message || 'Something went wrong. Please try again.';
 
 function PasswordForm() {
+  const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ current: '', next: '', confirm: '' });
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const toggle = () => {
+    setOpen((o) => !o);
+    setError('');
+    setMessage('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +41,7 @@ function PasswordForm() {
       });
       setMessage(res.data.message);
       setForm({ current: '', next: '', confirm: '' });
+      setOpen(false); // fold the form away, the green message stays
     } catch (err) {
       setError(errorText(err));
     } finally {
@@ -42,27 +51,73 @@ function PasswordForm() {
 
   return (
     <section className="panel">
-      <h3>Change password</h3>
-      <form onSubmit={handleSubmit}>
-        <label>Current password</label>
-        <input name="current" type="password" autoComplete="current-password"
-               value={form.current} onChange={handleChange} required />
+      <h3>
+        <button type="button" className="collapse-head" onClick={toggle} aria-expanded={open}>
+          Change password
+          <span className="chevron" aria-hidden="true">▾</span>
+        </button>
+      </h3>
+      <p className="muted collapse-hint">Update the password you use to log in.</p>
 
-        <label>New password</label>
-        <input name="next" type="password" autoComplete="new-password" minLength={6}
-               value={form.next} onChange={handleChange} required />
+      {message && !open && (
+        <p className="msg msg-success" style={{ marginTop: 12 }}>{message}</p>
+      )}
 
-        <label>Confirm new password</label>
-        <input name="confirm" type="password" autoComplete="new-password" minLength={6}
-               value={form.confirm} onChange={handleChange} required />
+      {open && (
+        <form className="collapse-body" onSubmit={handleSubmit}>
+          <label>Current password</label>
+          <input name="current" type="password" autoComplete="current-password" autoFocus
+                 value={form.current} onChange={handleChange} required />
 
-        {error && <p className="msg msg-error">{error}</p>}
-        {message && <p className="msg msg-success">{message}</p>}
+          <label>New password</label>
+          <input name="next" type="password" autoComplete="new-password" minLength={6}
+                 value={form.next} onChange={handleChange} required />
 
-        <div className="row">
-          <button className="btn" disabled={saving}>{saving ? 'Saving...' : 'Change password'}</button>
-        </div>
-      </form>
+          <label>Confirm new password</label>
+          <input name="confirm" type="password" autoComplete="new-password" minLength={6}
+                 value={form.confirm} onChange={handleChange} required />
+
+          {error && <p className="msg msg-error">{error}</p>}
+
+          <div className="row">
+            <button className="btn" disabled={saving}>{saving ? 'Saving...' : 'Change password'}</button>
+            <button type="button" className="btn btn-outline" onClick={toggle}>Cancel</button>
+          </div>
+        </form>
+      )}
+    </section>
+  );
+}
+
+function AppearanceSection() {
+  const [theme, setTheme] = useState(getTheme);
+
+  const choose = (id) => {
+    applyTheme(id);
+    setTheme(id);
+  };
+
+  return (
+    <section className="panel">
+      <h3>Appearance</h3>
+      <p className="muted">Pick a look for the app. Your choice is saved in this browser.</p>
+
+      <div className="theme-grid">
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            data-theme-name={t.id}
+            className={`theme-option ${theme === t.id ? 'theme-option-active' : ''}`}
+            onClick={() => choose(t.id)}
+            aria-pressed={theme === t.id}
+          >
+            <span className="theme-swatches" aria-hidden="true"><i /><i /><i /></span>
+            <span className="theme-name">{t.name}</span>
+            <span className="theme-desc">{t.desc}</span>
+          </button>
+        ))}
+      </div>
     </section>
   );
 }
@@ -248,8 +303,9 @@ function Settings() {
               Your college email is your login and can't be changed. Other people only ever see your username.
             </p>
           </section>
-
+          <AppearanceSection />
           <PasswordForm />
+          
           <BackupEmailForm profile={profile} onChanged={loadProfile} />
           <DeleteAccount profile={profile} />
         </>
