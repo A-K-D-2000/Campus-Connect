@@ -12,6 +12,7 @@ import PostPage from "./pages/PostPage";
 import MyActivity from './pages/MyActivity';
 import Settings from './pages/Settings';
 import AdminUsers from './pages/AdminUsers';
+import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
   return (
@@ -31,6 +32,8 @@ function App() {
           <Route path="/my-activity" element={<MyActivity />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail kind="signup" />} />
+          <Route path="/verify-backup/:token" element={<VerifyEmail kind="backup" />} />
         </Routes>
       </main>
     </>

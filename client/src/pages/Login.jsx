@@ -7,6 +7,9 @@ function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [needsVerify, setNeedsVerify] = useState(false);
+  const [resendMsg, setResendMsg] = useState('');
+  const [resending, setResending] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -17,6 +20,8 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setNeedsVerify(false);
+    setResendMsg('');
     setLoading(true);
     try {
       const res = await api.post('/api/auth/login', {
@@ -27,8 +32,24 @@ function Login() {
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');
+      setNeedsVerify(err.response?.status === 403);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    setResendMsg('');
+    try {
+      const res = await api.post('/api/auth/resend-verification', {
+        email: form.email.trim().toLowerCase(),
+      });
+      setResendMsg(res.data.message);
+    } catch (err) {
+      setResendMsg(err.response?.data?.message || 'Could not send the email. Please try again.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -43,6 +64,15 @@ function Login() {
         <input name="password" type="password" value={form.password} onChange={handleChange} required />
 
         {error && <p className="msg msg-error">{error}</p>}
+
+        {needsVerify && (
+          <div>
+            <button type="button" className="btn btn-outline btn-small" onClick={handleResend} disabled={resending}>
+              {resending ? 'Sending...' : 'Send a new verification link'}
+            </button>
+            {resendMsg && <p className="msg msg-info" style={{ marginTop: 10 }}>{resendMsg}</p>}
+          </div>
+        )}
 
         <button className="btn" disabled={loading}>
           {loading ? 'Logging in...' : 'Log in'}
