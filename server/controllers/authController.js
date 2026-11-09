@@ -1,22 +1,14 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const { Filter } = require("bad-words");
 const DeletedEmail = require("../models/DeletedEmail");
 const Notification = require("../models/Notification");
+const { sendEmail } = require('../utils/sendEmail');
+const { CLIENT_URL } = require('../config/clientUrl');
 
 const filter = new Filter();
-
-// Nodemailer transporter - reusable "mail sender" object
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 const signup = async (req, res) => {
   try {
@@ -80,9 +72,8 @@ const signup = async (req, res) => {
     await newUser.save();
 
     // 7. Send verification email
-    const verificationLink = `http://localhost:5000/api/auth/verify/${verificationToken}`;
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const verificationLink = `${CLIENT_URL}/verify-email/${verificationToken}`;
+    await sendEmail({
       to: email,
       subject: "Verify your Campus Connect account",
       html: `<p>Click the link below to verify your account:</p>
@@ -155,9 +146,8 @@ const resendVerification = async (req, res) => {
       user.verificationToken = verificationToken;
       await user.save();
 
-      const verificationLink = `http://localhost:5000/api/auth/verify/${verificationToken}`;
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+      const verificationLink = `${CLIENT_URL}/verify-email/${verificationToken}`;
+      await sendEmail({
         to: user.email,
         subject: "Verify your Campus Connect account",
         html: `<p>Click the link below to verify your account:</p>
@@ -183,7 +173,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     // 1. Find the user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ $or: [{ email }, { backupEmail: email }] });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -222,8 +212,8 @@ const login = async (req, res) => {
     res.status(500).json({ message: "Server error during login" });
   }
 };
+
 // Save or change the backup email (logged-in users)
-// Start adding a backup email: send a verification link to it (logged-in users)
 const setBackupEmail = async (req, res) => {
   try {
     const { backupEmail } = req.body;
@@ -255,9 +245,8 @@ const setBackupEmail = async (req, res) => {
       { expiresIn: "1d" },
     );
 
-    const verifyLink = `http://localhost:5000/api/auth/verify-backup/${token}`;
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const verifyLink = `${CLIENT_URL}/verify-backup/${token}`;
+    await sendEmail({
       to: value,
       subject: "Verify your Campus Connect backup email",
       html: `<p>Click the link below to confirm this address as your backup email:</p>
@@ -335,11 +324,9 @@ const forgotPassword = async (req, res) => {
       user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
       await user.save();
 
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-      const resetLink = `${clientUrl}/reset-password/${rawToken}`;
+      const resetLink = `${CLIENT_URL}/reset-password/${rawToken}`;
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+      await sendEmail({
         to: address,
         subject: "Reset your Campus Connect password",
         html: `<p>Click the link below to reset your password. It expires in 1 hour.</p>
@@ -501,4 +488,16 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { signup, verifyEmail, resendVerification, login, setBackupEmail, verifyBackupEmail, forgotPassword, resetPassword, deleteAccount, getMe, changePassword };
+module.exports = {
+  signup,
+  verifyEmail,
+  resendVerification,
+  login,
+  setBackupEmail,
+  verifyBackupEmail,
+  forgotPassword,
+  resetPassword,
+  deleteAccount,
+  getMe,
+  changePassword
+};
